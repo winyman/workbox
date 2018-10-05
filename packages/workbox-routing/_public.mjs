@@ -14,6 +14,7 @@
   limitations under the License.
 */
 
+import {DefaultRouter} from './DefaultRouter.mjs';
 import {RegExpRoute} from './RegExpRoute.mjs';
 import {Route} from './Route.mjs';
 import {Router} from './Router.mjs';
@@ -21,6 +22,7 @@ import {NavigationRoute} from './NavigationRoute.mjs';
 import './_version.mjs';
 
 export {
+  DefaultRouter,
   RegExpRoute,
   Route,
   Router,
