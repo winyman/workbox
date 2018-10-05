@@ -69,7 +69,7 @@ class NavigationRoute extends Route {
       });
     }
 
-    super((...args) => this._match(...args), handler);
+    super((options) => this._match(options), handler);
 
     this._whitelist = whitelist;
     this._blacklist = blacklist;
@@ -79,14 +79,15 @@ class NavigationRoute extends Route {
    * Routes match handler.
    *
    * @param {Object} options
-   * @param {FetchEvent} options.event
    * @param {URL} options.url
+   * @param {Request} options.request
+   * @param {Event} [options.event]
    * @return {boolean}
    *
    * @private
    */
-  _match({event, url}) {
-    if (event.request.mode !== 'navigate') {
+  _match({url, request}) {
+    if (request.mode !== 'navigate') {
       return false;
     }
 
