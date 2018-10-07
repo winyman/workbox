@@ -1,12 +1,28 @@
 import {expect} from 'chai';
 import sinon from 'sinon';
 import path from 'path';
-import fs from 'fs-extra';
 import generateTestVariants from '../../../infra/testing/generate-variant-tests';
 import WorkboxSW from '../../../packages/workbox-sw/controllers/WorkboxSW.mjs';
 import getPackagesOfType from '../../../gulp-tasks/utils/get-packages-of-type';
 
 const ROOT_DIR = path.join(__dirname, '..', '..', '..');
+
+const browserPackages = getPackagesOfType(ROOT_DIR, 'browser');
+
+const eachBrowserPackage = (cb) => {
+  browserPackages.forEach((name) => {
+    const pkg = require(path.join(ROOT_DIR, 'packages', name, 'package.json'));
+
+    cb(pkg);
+  });
+};
+
+const browserOutputFilenameToPkgMap = {};
+eachBrowserPackage((pkg) => {
+  const outputFilename = pkg.workbox.outputFilename || pkg.name;
+  browserOutputFilenameToPkgMap[outputFilename] = pkg;
+});
+
 
 describe(`[workbox-sw] WorkboxSW`, function() {
   let sandbox = sinon.createSandbox();
@@ -22,11 +38,12 @@ describe(`[workbox-sw] WorkboxSW`, function() {
         return;
       }
 
-      const packageName = match[1];
-      const pkgJson = fs.readJSONSync(path.join(ROOT_DIR, 'packages', packageName, 'package.json'));
-      const namespace = pkgJson.workbox.browserNamespace.split('.')[1];
+      const outputFilename = match[1];
+      const pkg = browserOutputFilenameToPkgMap[outputFilename];
+
+      const namespace = pkg.workbox.browserNamespace.split('.')[1];
       self.workbox[namespace] = {
-        injectedMsg: `Injected value for ${packageName}.`,
+        injectedMsg: `Injected value for ${pkg.name}.`,
       };
     });
   });
@@ -223,12 +240,8 @@ describe(`[workbox-sw] WorkboxSW`, function() {
     });
   });
 
-  const browserPackages = getPackagesOfType(ROOT_DIR, 'browser');
-  browserPackages.forEach((pkgName) => {
-    const pkg = fs.readJSONSync(path.join(ROOT_DIR, 'packages', pkgName, 'package.json'));
-    if (pkg.workbox.browserNamespace === 'workbox') {
-      return;
-    }
+  eachBrowserPackage((pkg) => {
+    if (pkg.workbox.browserNamespace === 'workbox') return;
 
     describe(`get ${pkg.workbox.browserNamespace}`, function() {
       it(`should return ${pkg.workbox.browserNamespace}`, function() {
