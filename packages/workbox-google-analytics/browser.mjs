@@ -15,4 +15,4 @@
 
 import './_version.mjs';
 
-export * from './_default.mjs';
+export * from './_public.mjs';
